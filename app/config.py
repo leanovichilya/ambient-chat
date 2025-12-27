@@ -12,6 +12,7 @@ class Settings:
     show_reasoning: bool
     model: str
     timeout: float
+    stream_mode: str  # "live" | "collected"
 
 
 def load_settings() -> Settings:
@@ -25,9 +26,14 @@ def load_settings() -> Settings:
     model = os.getenv("AMBIENT_MODEL", "zai-org/GLM-4.6")
     timeout = float(os.getenv("AMBIENT_TIMEOUT", "60"))
 
+    stream_mode = os.getenv("STREAM_MODE", "collected").strip().lower()
+    if stream_mode not in ("live", "collected"):
+        stream_mode = "collected"
+
     return Settings(
         api_key=api_key,
         show_reasoning=show_reasoning,
         model=model,
         timeout=timeout,
+        stream_mode=stream_mode,
     )

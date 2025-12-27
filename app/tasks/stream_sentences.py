@@ -4,6 +4,7 @@ from typing import Tuple
 
 from ambient import AmbientClient, ChatMessage
 from app.prompts import SYSTEM_EN_NO_COMMENTARY, USER_3_SHORT_SENTENCES
+from app.tasks.stream_chat import stream_chat_collected, stream_chat_live
 
 
 def run_stream_sentences(
@@ -11,25 +12,27 @@ def run_stream_sentences(
         model: str,
         collect_reasoning: bool,
 ) -> Tuple[str, str]:
-    final_parts: list[str] = []
-    reasoning_parts: list[str] = []
+    messages = [
+        ChatMessage(role="system", content=SYSTEM_EN_NO_COMMENTARY),
+        ChatMessage(role="user", content=USER_3_SHORT_SENTENCES),
+    ]
+    return stream_chat_collected(c, model, messages, collect_reasoning)
 
-    for chunk in c.chat_stream(
-            model=model,
-            messages=[
-                ChatMessage(role="system", content=SYSTEM_EN_NO_COMMENTARY),
-                ChatMessage(role="user", content=USER_3_SHORT_SENTENCES),
-            ],
-    ):
-        delta = chunk.get("choices", [{}])[0].get("delta", {})
 
-        if collect_reasoning:
-            rc = delta.get("reasoning_content")
-            if rc:
-                reasoning_parts.append(rc)
-
-        content = delta.get("content")
-        if content:
-            final_parts.append(content)
-
-    return "".join(final_parts), "".join(reasoning_parts)
+def run_stream_sentences_live(
+        c: AmbientClient,
+        model: str,
+        collect_reasoning: bool,
+        print_reasoning: bool = False,
+) -> Tuple[str, str]:
+    messages = [
+        ChatMessage(role="system", content=SYSTEM_EN_NO_COMMENTARY),
+        ChatMessage(role="user", content=USER_3_SHORT_SENTENCES),
+    ]
+    return stream_chat_live(
+        c,
+        model,
+        messages,
+        collect_reasoning=collect_reasoning,
+        print_reasoning=print_reasoning,
+    )
