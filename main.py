@@ -1,48 +1,29 @@
-import os
-from dotenv import load_dotenv
+from __future__ import annotations
 
-from ambient import AmbientClient, ChatMessage
+from ambient import AmbientClient
 from ambient.errors import AmbientError
-from ambient.stream_text import stream_text
 
-load_dotenv()  # читает .env из текущей директории/родителей
+from app_config import load_settings
+from run_chat_hello import run_chat_hello
+from run_stream_sentences import run_stream_sentences
 
-API_KEY = os.getenv("AMBIENT_API_KEY")
-if not API_KEY:
-    raise RuntimeError("AMBIENT_API_KEY not found in env/.env")
 
-SHOW_REASONING = os.getenv("SHOW_REASONING", "0") in ("1", "true", "True", "yes", "YES")
+def main() -> None:
+    s = load_settings()
 
-with AmbientClient(API_KEY, timeout=60.0) as c:
     try:
-        resp = c.chat(
-            model="zai-org/GLM-4.6",
-            messages=[
-                ChatMessage(role="system", content="Reply in English."),
-                ChatMessage(role="user", content="Hello"),
-            ],
-        )
-        print(resp["choices"][0]["message"]["content"])
+        with AmbientClient(s.api_key, timeout=s.timeout) as c:
+            # 1) обычный чат
+            text = run_chat_hello(c, s.model)
+            print(text)
+            print()
 
-        reasoning_parts = []
-
-        for chunk in c.chat_stream(
-                model="zai-org/GLM-4.6",
-                messages=[
-                    ChatMessage(role="system", content="Reply in English. No extra commentary."),
-                    ChatMessage(role="user", content="Say 3 short sentences."),
-                ],
-        ):
-            delta = chunk.get("choices", [{}])[0].get("delta", {})
-
-            if SHOW_REASONING and "reasoning_content" in delta:
-                print(delta["reasoning_content"], end="", flush=True)
-
-            if "content" in delta:
-                print(delta["content"], end="", flush=True)
-
-        print()
-
+            # 2) streaming
+            run_stream_sentences(c, s.model, s.show_reasoning)
 
     except AmbientError as e:
         print("AmbientError:", e)
+
+
+if __name__ == "__main__":
+    main()
