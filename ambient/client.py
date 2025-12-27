@@ -2,10 +2,9 @@ from __future__ import annotations
 
 from typing import Any, Dict, Generator, List, Optional, Union
 
-import httpx
-
-from .chat import chat as chat_fn
-from .chat_stream import chat_stream as chat_stream_fn
+from .endpoints.chat import chat as chat_fn
+from .endpoints.chat_stream import chat_stream as chat_stream_fn
+from .http.create_client import create_httpx_client
 from .types import ChatMessage
 
 
@@ -21,40 +20,19 @@ class AmbientClient:
     ) -> None:
         self.base_url = base_url.rstrip("/")
 
-        client_kwargs: Dict[str, Any] = {
-            "base_url": self.base_url,
-            "timeout": httpx.Timeout(timeout),
-            "verify": verify,
-            "http2": http2,
-            "headers": {
-                "Authorization": f"Bearer {api_key}",
-                "Content-Type": "application/json",
-                "Accept": "text/event-stream",
-            },
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
         }
 
-        # httpx>=0.28: proxies= удалён, используем proxy= или mounts=
-        # proxy=  -> один прокси на всё
-        # mounts= -> разные прокси для http:// и https://
-        if proxies:
-            if isinstance(proxies, str):
-                client_kwargs["proxy"] = proxies  # httpx docs: proxy=... :contentReference[oaicite:1]{index=1}
-            elif isinstance(proxies, dict):
-                http_proxy = proxies.get("http") or proxies.get("http://")
-                https_proxy = proxies.get("https") or proxies.get("https://")
-
-                mounts: Dict[str, httpx.BaseTransport] = {}
-                if http_proxy:
-                    mounts["http://"] = httpx.HTTPTransport(proxy=http_proxy)
-                if https_proxy:
-                    mounts["https://"] = httpx.HTTPTransport(proxy=https_proxy)
-
-                # если пользователь передал dict, но он пустой/без ключей — просто не задаём mounts
-                if mounts:
-                    client_kwargs[
-                        "mounts"] = mounts  # httpx: mounts={"http://": ...} :contentReference[oaicite:2]{index=2}
-
-        self._client = httpx.Client(**client_kwargs)
+        self._client = create_httpx_client(
+            base_url=self.base_url,
+            timeout=timeout,
+            proxies=proxies,
+            verify=verify,
+            http2=http2,
+            headers=headers,
+        )
 
     def close(self) -> None:
         self._client.close()

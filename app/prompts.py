@@ -1,5 +1,3 @@
-# prompts.py
-
 SYSTEM_EN = "Reply in English."
 SYSTEM_EN_NO_COMMENTARY = "Reply in English. No extra commentary."
 

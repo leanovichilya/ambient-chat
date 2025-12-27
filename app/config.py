@@ -15,15 +15,13 @@ class Settings:
 
 
 def load_settings() -> Settings:
-    load_dotenv()  # читает .env из текущей директории/родителей
+    load_dotenv()
 
     api_key = os.getenv("AMBIENT_API_KEY")
     if not api_key:
         raise RuntimeError("AMBIENT_API_KEY not found in env/.env")
 
     show_reasoning = os.getenv("SHOW_REASONING", "0").lower() in ("1", "true", "yes", "y", "on")
-
-    # можно тоже вынести в .env при желании
     model = os.getenv("AMBIENT_MODEL", "zai-org/GLM-4.6")
     timeout = float(os.getenv("AMBIENT_TIMEOUT", "60"))
 

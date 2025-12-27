@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from ambient import AmbientClient, ChatMessage
-from prompts import SYSTEM_EN, USER_HELLO
+from app.prompts import SYSTEM_EN, USER_HELLO
 
 
 def run_chat_hello(c: AmbientClient, model: str) -> str:

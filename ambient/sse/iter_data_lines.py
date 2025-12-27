@@ -1,11 +1,9 @@
+from __future__ import annotations
+
 from typing import Generator, Iterable, Union
 
 
 def iter_sse_data_lines(lines: Iterable[Union[str, bytes]]) -> Generator[str, None, None]:
-    """
-    Extracts 'data: ...' payloads from SSE stream.
-    Ignores event:, id:, retry: and blank lines.
-    """
     for raw in lines:
         if not raw:
             continue
