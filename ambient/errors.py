@@ -1,0 +1,2 @@
+class AmbientError(Exception):
+    pass
