@@ -20,6 +20,7 @@ def create_httpx_client(
         "verify": verify,
         "http2": http2,
         "headers": headers,
+        "trust_env": False,
     }
 
     if proxies:

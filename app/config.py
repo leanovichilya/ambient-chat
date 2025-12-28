@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
+from typing import Optional
 
 from dotenv import load_dotenv
 
@@ -12,7 +13,8 @@ class Settings:
     show_reasoning: bool
     model: str
     timeout: float
-    stream_mode: str  # "live" | "collected"
+    stream_mode: str
+    proxy: Optional[str]  # None means no proxy
 
 
 def load_settings() -> Settings:
@@ -30,10 +32,14 @@ def load_settings() -> Settings:
     if stream_mode not in ("live", "collected"):
         stream_mode = "collected"
 
+    use_proxy = os.getenv("USE_PROXY", "0").lower() in ("1", "true", "yes", "y", "on")
+    proxy = os.getenv("AMBIENT_PROXY") if use_proxy else None
+
     return Settings(
         api_key=api_key,
         show_reasoning=show_reasoning,
         model=model,
         timeout=timeout,
         stream_mode=stream_mode,
+        proxy=proxy,
     )

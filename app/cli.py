@@ -12,7 +12,7 @@ def run() -> None:
     s = load_settings()
 
     try:
-        with AmbientClient(s.api_key, timeout=s.timeout) as c:
+        with AmbientClient(s.api_key, timeout=s.timeout, proxies=s.proxy) as c:
             text = run_chat_hello(c, s.model)
             print(text)
             print()
